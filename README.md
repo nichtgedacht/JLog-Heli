@@ -13,7 +13,7 @@ Lua script for Jeti DC/DS-16. Utilizes JLog sensors for helicopters
 ![screen003](https://raw.githubusercontent.com/nichtgedacht/JLog-Heli/master/Screen008.bmp)
 ![screen004](https://raw.githubusercontent.com/nichtgedacht/JLog-Heli/master/Screen009.bmp)
 ![screen000](https://raw.githubusercontent.com/nichtgedacht/JLog-Heli/master/Screen010.bmp)
-
+![screen000](https://raw.githubusercontent.com/nichtgedacht/JLog-Heli/master/Screen011.bmp)
 
 * Runs on DC/DS-16 with FW 5.03 and higher
 * Small memory footprint by running setup and telemetry-screen as separated tasks 

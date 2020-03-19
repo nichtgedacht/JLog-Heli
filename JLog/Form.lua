@@ -32,7 +32,7 @@ local function setup(vars)
 	form.addSpacer(318,7)
 
 	form.addRow(1)
-    form.addLabel({label=vars.trans.label0,font=FONT_BOLD})
+	form.addLabel({label=vars.trans.label0,font=FONT_BOLD})
 
 	form.addRow(2)
 	form.addLabel({label = vars.trans.labelp0, width=200})

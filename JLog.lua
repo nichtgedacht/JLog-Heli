@@ -74,18 +74,16 @@ local bec_current, pwm_percent, fet_temp = 0, 0, 0
 local remaining_capacity_percent, minpwm, maxpwm = 100, 0, 0
 local minrpm, maxrpm, mincur, maxcur = 999, 0, 99.9, 0
 local minvtg, maxvtg, mintmp, maxtmp = 99, 0, 99, 0
-local fTime
-local time, lastTime, newTime = 0, 0, 0
 local std, min, sec = 0, 0, 0
+local time, newTime, lastTime = 0, 0, 0
 local minrxv, maxrxv, minrxa, maxrxa = 9.9, 0.0, 9.9, 0.0
-local next_capacity_announcement, next_voltage_announcement, tTime = 0, 0, 0
+local next_capacity_announcement, next_voltage_announcement, tickTime = 0, 0, 0
 local next_capacity_alarm, next_voltage_alarm = 0, 0
 local last_averaging_time = 0
 local voltage_alarm_dec_thresh
 local voltages_list = {}
 --local rx_percent = 0 -- signal quality, not used
 local rx_a1, rx_a2 = 0, 0
---local volume_playback, volume, not used
 --local mem, maxmem = 0, 0 -- for debug only
 local goregisterTelemetry = nil
 local setupvars = {}
@@ -169,16 +167,24 @@ end
 
 -- Flight time
 local function FlightTime()
+
+	local timeSw_val = system.getInputsVal(setupvars.timeSw)
+	local resetSw_val = system.getInputsVal(setupvars.resSw)
+	
 	newTime = system.getTimeCounter()
-	ltimeSw = system.getInputsVal(setupvars.timeSw)
-	resetSw = system.getInputsVal(setupvars.resSw)
 
 	-- to be in sync with a system timer, do not use CLR key 
-	if (resetSw == 1) then time = 0 end
-        
+	if (resetSw_val == 1) then
+		time = 0
+	end
+
+	if (timeSw_val ~= 1) then
+		lastTime = newTime -- properly start of first interval
+	end
+	        
 	if newTime >= (lastTime + 1000) then  -- one second
 		lastTime = newTime
-		if (ltimeSw == 1) then 
+		if (timeSw_val == 1) then 
 			time = time + 1
 		end
 	end
@@ -216,8 +222,7 @@ end
 function average(value)
     
 	local sum_voltages = 0
-	local voltage
-	local i
+	local i, voltage
 
 	if ( #voltages_list == 5 ) then
 		table.remove(voltages_list, 1)
@@ -235,10 +240,10 @@ end
 
 -- main loop
 local function loop()
-
+	
 	local anCapaGo = system.getInputsVal(setupvars.anCapaSw)
 	local anVoltGo = system.getInputsVal(setupvars.anVoltSw)
-	local tTime = system.getTime()
+	local tickTime = system.getTime()
 
 	FlightTime()
 
@@ -306,59 +311,32 @@ local function loop()
 
 	if(sensor and sensor.valid and (battery_voltage > 1.0)) then
 		used_capacity = sensor.value
-	-- TRY TRY
-	--if(sensor and (battery_voltage > 1.0)) then
-	--	used_capacity = 0
 
 		if ( initial_voltage_measured == true ) then
 			remaining_capacity_percent = math.floor( ( ( (setupvars.capacity - used_capacity) * 100) / setupvars.capacity ) - initial_capacity_percent_used)
 			if remaining_capacity_percent < 0 then remaining_capacity_percent = 0 end
 		end
             
-		if ( remaining_capacity_percent <= setupvars.capacity_alarm_thresh and setupvars.capacity_alarm_voice ~= "..." and next_capacity_alarm < tTime ) then
-		-- TRY TRY      
-		--if(remaining_capacity_percent <= capacity_alarm_thresh and tTime >= next_capacity_alarm ) then    
+		if ( remaining_capacity_percent <= setupvars.capacity_alarm_thresh and setupvars.capacity_alarm_voice ~= "..." and next_capacity_alarm < tickTime ) then
 			system.messageBox(trans.capaWarn,2)
-
-			--volume = system.getProperty ("Volume")
-		    --volume_playback = system.getProperty ("VolumePlayback")
-			--system.setProperty ("Volume", 16)
-			--system.setProperty ("VolumePlayback", 100)
-
 			system.playFile(setupvars.capacity_alarm_voice,AUDIO_QUEUE)
-
-		    --system.setProperty ("Volume", volume)
-		    --system.setProperty ("VolumePlayback", volume_playback) 
-
-			next_capacity_alarm = tTime + 4 -- battery percentage alarm every 3 second
+			next_capacity_alarm = tickTime + 4 -- battery percentage alarm every 3 second
 		end
         
-		if ( battery_voltage_average <= voltage_alarm_dec_thresh and setupvars.voltage_alarm_voice ~= "..." and next_voltage_alarm < tTime ) then
-		-- TRY TRY
-		--if ( battery_voltage <= voltage_alarm_dec_thresh and next_voltage_alarm < tTime ) then     
+		if ( battery_voltage_average <= voltage_alarm_dec_thresh and setupvars.voltage_alarm_voice ~= "..." and next_voltage_alarm < tickTime ) then
 			system.messageBox(trans.voltWarn,2)
-
-			--volume = system.getProperty ("Volume")
-		    --volume_playback = system.getProperty ("VolumePlayback")
-			--system.setProperty ("Volume", 16)
-			--system.setProperty ("VolumePlayback", 100)
-
 			system.playFile(setupvars.voltage_alarm_voice,AUDIO_QUEUE)
-
-		    --system.setProperty ("Volume", volume)
-		    --system.setProperty ("VolumePlayback", volume_playback)
-
-		    next_voltage_alarm = tTime + 4 -- battery voltage alarm every 3 second 
+		    next_voltage_alarm = tickTime + 4 -- battery voltage alarm every 3 second 
 		end    
              
-		if(anCapaGo == 1 and tTime >= next_capacity_announcement) then
+		if(anCapaGo == 1 and tickTime >= next_capacity_announcement) then
 			system.playNumber(remaining_capacity_percent, 0, "%", "Capacity")
-			next_capacity_announcement = tTime + 10 -- say battery percentage every 10 seconds
+			next_capacity_announcement = tickTime + 10 -- say battery percentage every 10 seconds
 		end
 
-		if(anVoltGo == 1 and tTime >= next_voltage_announcement) then
+		if(anVoltGo == 1 and tickTime >= next_voltage_announcement) then
 			system.playNumber(battery_voltage, 1, "V", "U Battery")
-			next_voltage_announcement = tTime + 10 -- say battery voltage every 10 seconds
+			next_voltage_announcement = tickTime + 10 -- say battery voltage every 10 seconds
 		end
                  
 		-- Set max/min percentage to 99/0 for drawing
@@ -461,7 +439,7 @@ local function init(code1)
 	collectgarbage()
 end
 --------------------------------------------------------------------------------
-Version = "1.0"
+Version = "1.1"
 setLanguage()
 collectgarbage()
 return {init=init, loop=loop, author="Nichtgedacht", version=Version, name=trans.appName}
