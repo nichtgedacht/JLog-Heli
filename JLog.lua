@@ -22,9 +22,9 @@
 	VERWENDUNG DER SOFTWARE ENTSTANDEN. 
 	----------------------------------------------------------------------------
 
-
 	nichtgedacht Version History:
 	V1.0 initial release
+	V1.1 changed scope of some vars, minor change in flight timer 
 
 --]]
 
@@ -87,7 +87,7 @@ local rx_a1, rx_a2 = 0, 0
 --local mem, maxmem = 0, 0 -- for debug only
 local goregisterTelemetry = nil
 local setupvars = {}
-local gyro_channel = 0 -- stores value of selected servo output "OXX" used for GY
+local gyro_channel_val = 0 -- stores value of selected servo output "OXX" used for GY
 
 -- maps cell voltages to remainig capacity
 local percentList	=	{{3,0},{3.093,1},{3.196,2},{3.301,3},{3.401,4},{3.477,5},{3.544,6},{3.601,7},{3.637,8},{3.664,9},
@@ -123,7 +123,7 @@ local function Window(width, height)
 	Screen.drawRitopbox(trans, std, min, sec, today)
 	Screen.drawRimidbox(trans, used_capacity, initial_capacity_percent_used, setupvars.capacity)
 	Screen.drawRibotbox(maxrxa, maxcur, maxpwm, maxtmp)
-	Screen.drawMibotbox(gyro_channel)
+	Screen.drawMibotbox(gyro_channel_val)
 	Screen.drawSeparators()
 	
 end
@@ -206,7 +206,7 @@ local function get_capacity_percent_used()
 		if(initial_cell_voltage < 3.00)then
 			result=100
 		end
-		else
+	else
 		for i,v in ipairs(percentList) do
 			if ( v[1] >= initial_cell_voltage ) then
 				result =  100 - v[2]
@@ -247,7 +247,7 @@ local function loop()
 
 	FlightTime()
 
-	gyro_channel = system.getInputs(setupvars.gyro_output)
+	gyro_channel_val = system.getInputs(setupvars.gyro_output)
 
 	txtelemetry = system.getTxTelemetry()
 	rx_voltage = txtelemetry.rx1Voltage
@@ -260,9 +260,8 @@ local function loop()
 
 	if(sensor and sensor.valid ) then
 		battery_voltage = sensor.value
-		-- TRY TRY
-	--if(sensor) then
-	--	battery_voltage = 19
+		
+		-- guess used capacity from voltage if we started with partially discharged battery 
 		if (initial_voltage_measured == false) then
 			if ( battery_voltage > 3 ) then
 				initial_voltage_measured = true
@@ -271,7 +270,7 @@ local function loop()
 			end    
 		end        
 
-		-- calculate Min/Max Sensor 1
+		-- calculate Min/Max
 		if ( battery_voltage < minvtg and battery_voltage > 6 ) then minvtg = battery_voltage end
 		if battery_voltage > maxvtg then maxvtg = battery_voltage end
 		
@@ -288,7 +287,7 @@ local function loop()
 	sensor = system.getSensorValueByID(setupvars.sensorId, setupvars.motor_current_param)
 	if(sensor and sensor.valid) then
 		motor_current = sensor.value
-		-- calculate Min/Max Sensor 2
+		-- calculate Min/Max
 		if motor_current < mincur then mincur = motor_current end
 		if motor_current > maxcur then maxcur = motor_current end
 	else
@@ -299,7 +298,7 @@ local function loop()
 	sensor = system.getSensorValueByID(setupvars.sensorId, setupvars.rotor_rpm_param)
 	if(sensor and sensor.valid) then
 		rotor_rpm = sensor.value
-		-- calculate Min/Max Sensor 3
+		-- calculate Min/Max
 		if rotor_rpm < minrpm then minrpm = rotor_rpm end
 		if rotor_rpm > maxrpm then maxrpm = rotor_rpm end
 	else
@@ -344,7 +343,7 @@ local function loop()
 		if( remaining_capacity_percent < 0 ) then remaining_capacity_percent = 0 end
 	end	
 
-	-- Read Sensor Parameter 6 BEC Current
+	-- Read Sensor Parameter BEC Current
 	sensor = system.getSensorValueByID(setupvars.sensorId, setupvars.bec_current_param)
 	if(sensor and sensor.valid) then
 		bec_current = sensor.value 
