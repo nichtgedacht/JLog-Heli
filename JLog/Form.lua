@@ -18,9 +18,11 @@ local function make_lists (sensorId)
 				sensor_param_lists[#sensor_param_lists + 1] = {}			-- start new param list only containing label and unit as string
 			else															-- subscript is number of param for current multisensor/device
 				sensor_param_lists[#sensor_param_lists][sensor.param] = sensor.label .. "  " .. sensor.unit	-- list presented in param select box
+				sensor_param_lists[#sensor_param_lists][sensor.param + 1] = "..."
 			end
 		end
-	end	
+		sensor_label_list[#sensor_label_list + 1] = "..."
+	end
 end
 
 local function setup(vars)
@@ -42,9 +44,15 @@ local function setup(vars)
 							if ( not sensor_id_list[1] ) then	-- no device found
 								return
 							end
-							vars.sensorId  = sensor_id_list[value]
+							if (sensor_label_list[value] == "...") then
+								vars.sensorId = 0
+								sensorIndex = 0
+							else
+								vars.sensorId  = sensor_id_list[value]
+								sensorIndex = value
+							end
+
 							system.pSave("sensorId", vars.sensorId)
-							sensorIndex = value
 
 							vars.battery_voltage_param = 0 --default is "..."
 							vars.motor_current_param = 0
@@ -63,6 +71,9 @@ local function setup(vars)
 		form.addLabel({label = vars.trans.labelp1})
 		form.addSelectbox(sensor_param_lists[sensorIndex], vars.battery_voltage_param, true,
 							function (value)
+								if sensor_param_lists[sensorIndex][value] == "..." then
+									value = 0
+								end
 								vars.battery_voltage_param = value
 								system.pSave("battery_voltage_param", vars.battery_voltage_param)
 							end )
@@ -71,6 +82,9 @@ local function setup(vars)
 		form.addLabel({label = vars.trans.labelp2})
 		form.addSelectbox(sensor_param_lists[sensorIndex], vars.motor_current_param, true,
 							function (value)
+								if sensor_param_lists[sensorIndex][value] == "..." then
+									value = 0
+								end
 								vars.motor_current_param = value
 								system.pSave("motor_current_param", vars.motor_current_param)
 							end )
@@ -79,6 +93,9 @@ local function setup(vars)
 		form.addLabel({label = vars.trans.labelp3})
 		form.addSelectbox(sensor_param_lists[sensorIndex], vars.rotor_rpm_param, true,
 							function (value)
+								if sensor_param_lists[sensorIndex][value] == "..." then
+									value = 0
+								end
 								vars.rotor_rpm_param = value
 								system.pSave("rotor_rpm_param", vars.rotor_rpm_param)
 							end )
@@ -87,6 +104,9 @@ local function setup(vars)
 		form.addLabel({label = vars.trans.labelp4})
 		form.addSelectbox(sensor_param_lists[sensorIndex], vars.used_capacity_param, true,
 							function (value)
+								if sensor_param_lists[sensorIndex][value] == "..." then
+									value = 0
+								end
 								vars.used_capacity_param = value
 								system.pSave("used_capacity_param", vars.used_capacity_param)
 							end )
@@ -95,6 +115,9 @@ local function setup(vars)
 		form.addLabel({label = vars.trans.labelp5})
 		form.addSelectbox(sensor_param_lists[sensorIndex], vars.bec_current_param, true,
 							function (value)
+								if sensor_param_lists[sensorIndex][value] == "..." then
+									value = 0
+								end
 								vars.bec_current_param = value
 								system.pSave("bec_current_param", vars.bec_current_param)
 							end )
@@ -103,6 +126,9 @@ local function setup(vars)
 		form.addLabel({label = vars.trans.labelp6})
 		form.addSelectbox(sensor_param_lists[sensorIndex], vars.pwm_percent_param, true,
 							function (value)
+								if sensor_param_lists[sensorIndex][value] == "..." then
+									value = 0
+								end
 								vars.pwm_percent_param = value
 								system.pSave("pwm_percent_param", vars.pwm_percent_param)
 							end )
@@ -111,6 +137,9 @@ local function setup(vars)
 		form.addLabel({label = vars.trans.labelp7})
 		form.addSelectbox(sensor_param_lists[sensorIndex], vars.fet_temp_param, true,
 							function (value)
+								if sensor_param_lists[sensorIndex][value] == "..." then
+									value = 0
+								end
 								vars.fet_temp_param = value
 								system.pSave("fet_temp_param", vars.fet_temp_param)
 							end )
