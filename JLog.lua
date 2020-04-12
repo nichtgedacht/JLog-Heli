@@ -26,6 +26,7 @@
 	V1.0 initial release
 	V1.1 changed scope of some vars, minor change in flight timer
 	v2.0 moved most part of loop to screen module
+	v2.1 more acurate flight timer
 
 --]]
 
@@ -127,9 +128,6 @@ local function closeForm()
 	
 	collectgarbage()
 	
-	--Screen = require "JLog/Screen"
-	--Screen.init(setupvars)
-
 	-- register telemetry window again after 500 ms
 	goregisterTelemetry = 500 + system.getTimeCounter() -- used in loop()
 	
@@ -142,7 +140,7 @@ end
 local function loop()
 	
 	-- code of loop from screen module
-	if ( Screen ~= nil ) then
+	if ( Screen ) then
 		Screen.loop()
 	end
 
@@ -216,7 +214,7 @@ local function init(code1)
 	collectgarbage()
 end
 --------------------------------------------------------------------------------
-Version = "2.0"
+Version = "2.1"
 setLanguage()
 collectgarbage()
 return {init=init, loop=loop, author="Nichtgedacht", version=Version, name=trans.appName}

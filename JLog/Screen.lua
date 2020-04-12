@@ -22,7 +22,9 @@ local min = 0
 local sec = 0
 local time = 0
 local newTime = 0
-local lastTime = 0
+local ancorTime
+local resetOff = true
+local tickOffset = 0
 local next_capacity_announcement = 0
 local next_voltage_announcement = 0
 local tickTime = 0
@@ -63,6 +65,7 @@ local function init (stpvars)
 	vars = stpvars
 	today = system.getDateTime()
 	voltage_alarm_dec_thresh = vars.voltage_alarm_thresh / 10
+	ancorTime = system.getTimeCounter()
 	
 end	
 
@@ -224,41 +227,51 @@ end
 
 local function drawSeparators()
 	-- draw horizontal lines
-	lcd.drawFilledRectangle(4, 47, 104, 2)     --lo
-	lcd.drawFilledRectangle(4, 111, 116, 2)    --lu
-	lcd.drawFilledRectangle(212, 47, 104, 2)   --ro
-	lcd.drawFilledRectangle(200, 111, 116, 2)  --ru
+	lcd.drawFilledRectangle(4, 47, 104, 2)
+	lcd.drawFilledRectangle(4, 111, 116, 2)
+	lcd.drawFilledRectangle(212, 47, 104, 2)
+	lcd.drawFilledRectangle(200, 111, 116, 2)
 	lcd.drawFilledRectangle(4, 142, 116, 2)
 end
 
 
 -- Flight time
 local function FlightTime()
-
+        
 	local timeSw_val = system.getInputsVal(vars.timeSw)
 	local resetSw_val = system.getInputsVal(vars.resSw)
-	
+        
 	newTime = system.getTimeCounter()
+    
+	-- to be in sync with a system timer, do not use CLR key
+	if (resetSw_val == 1) then -- edge triggered reset
+		if ( resetOff ) then
+			resetOff = false
+			time = 0
+			std = 0
+			min = 0
+			sec = 0
+			ancorTime = newTime
+			tickOffset = 0
+		end     
+	else
+		resetOff = true
+	end     
 
-	-- to be in sync with a system timer, do not use CLR key 
-	if (resetSw_val == 1) then
-		time = 0
-	end
+	if (timeSw_val == 1) then
+		
+		timeDiff = newTime - (ancorTime + tickOffset)
 
-	if (timeSw_val ~= 1) then
-		lastTime = newTime -- properly start of first interval
-	end
-	        
-	if newTime >= (lastTime + 1000) then  -- one second
-		lastTime = newTime
-		if (timeSw_val == 1) then 
+		if ( timeDiff > 1000 ) then
 			time = time + 1
+			tickOffset = tickOffset + 1000
+			std = math.floor(time / 3600)
+			min = math.floor(time / 60) - std * 60
+			sec = time % 60
 		end
-	end
-
-	std = math.floor(time / 3600)
-	min = math.floor(time / 60) - std * 60
-	sec = time % 60
+	else
+		ancorTime = newTime - time * 1000  -- keep previous time     
+	end     
 
 	collectgarbage()
 end
