@@ -14,6 +14,12 @@ Lua script for Jeti DC/DS-16. Utilizes JLog sensors for helicopters
 ![screen004](https://raw.githubusercontent.com/nichtgedacht/JLog-Heli/master/Screen009.bmp)
 ![screen000](https://raw.githubusercontent.com/nichtgedacht/JLog-Heli/master/Screen010.bmp)
 ![screen000](https://raw.githubusercontent.com/nichtgedacht/JLog-Heli/master/Screen011.bmp)
+![screen002](https://raw.githubusercontent.com/nichtgedacht/JLog-Heli/master/Screen012.bmp)
+![screen003](https://raw.githubusercontent.com/nichtgedacht/JLog-Heli/master/Screen013.bmp)
+![screen004](https://raw.githubusercontent.com/nichtgedacht/JLog-Heli/master/Screen014.bmp)
+![screen000](https://raw.githubusercontent.com/nichtgedacht/JLog-Heli/master/Screen015.bmp)
+![screen000](https://raw.githubusercontent.com/nichtgedacht/JLog-Heli/master/Screen016.bmp)
+
 
 * Runs on DC/DS-16 with FW 5.03 and higher
 * Small memory footprint by running setup and telemetry-screen as separated tasks 
@@ -32,3 +38,4 @@ Lua script for Jeti DC/DS-16. Utilizes JLog sensors for helicopters
 * Adjustable percent capacity alarm theshold
 * Calculates initial charge condition
 * Displays Tail-Gyro values for Mini-Vstabi
+* Sensors from different devices selectable, see pictures 12 to 16

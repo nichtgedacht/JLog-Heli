@@ -64,7 +64,7 @@ local function init (stpvars)
 	
 	vars = stpvars
 	today = system.getDateTime()
-	voltage_alarm_dec_thresh = vars.voltage_alarm_thresh / 10
+--	voltage_alarm_dec_thresh = vars.voltage_alarm_thresh / 10
 	ancorTime = system.getTimeCounter()
 	
 end	
@@ -111,6 +111,7 @@ local function drawLetopbox()    -- Flightpack Voltage
 	battery_voltage_average), FONT_BIG)
 	lcd.drawText(60, 32, string.format("%.1f - %.1f", minvtg, maxvtg), FONT_MINI)
 end
+
 
 -- Draw left middle box
 local function drawLemidbox()	-- Rotor Speed
@@ -199,7 +200,7 @@ local function drawRibotbox()	-- Some Max Values
 end
 
 local function drawMibotbox()
-	
+
 	--[[
 	Gyro Gain    
 	Mini-Vstabi range is: +40 ... +120
@@ -212,7 +213,8 @@ local function drawMibotbox()
 	- gyro_percent = (gyro_channel * 100 + 39) * 0.6060 + 40
 	- gyro_percent = gyro_channel * 60.606 + 63.6363   
 	--]]
-	
+
+
 	local gyro_percent = gyro_channel_val * 60.606 + 63.6363
 	
 	if (gyro_percent < 40) then gyro_percent = 40 end
@@ -226,14 +228,13 @@ local function drawMibotbox()
 end	
 
 local function drawSeparators()
-	-- draw horizontal lines
+	--draw horizontal lines
 	lcd.drawFilledRectangle(4, 47, 104, 2)
 	lcd.drawFilledRectangle(4, 111, 116, 2)
 	lcd.drawFilledRectangle(212, 47, 104, 2)
 	lcd.drawFilledRectangle(200, 111, 116, 2)
 	lcd.drawFilledRectangle(4, 142, 116, 2)
 end
-
 
 -- Flight time
 local function FlightTime()
@@ -336,7 +337,7 @@ local function loop()
 	rx_a2 = txtelemetry.RSSI[2]
 
 	-- Read Sensor Parameter Voltage 
-	sensor = system.getSensorValueByID(vars.sensorId, vars.battery_voltage_param)
+	sensor = system.getSensorValueByID(vars.battery_voltage_sens[1], vars.battery_voltage_sens[2])
 	
 	if(sensor and sensor.valid ) then
 		battery_voltage = sensor.value
@@ -361,9 +362,9 @@ local function loop()
 		battery_voltage = 0
 		initial_voltage_measured = false
 	end
-        
+     
 	-- Read Sensor Parameter Current 
-	sensor = system.getSensorValueByID(vars.sensorId, vars.motor_current_param)
+	sensor = system.getSensorValueByID(vars.motor_current_sens[1], vars.motor_current_sens[2])
 	if(sensor and sensor.valid) then
 		motor_current = sensor.value
 		-- calculate Min/Max
@@ -372,9 +373,10 @@ local function loop()
 	else
 		motor_current = 0
 	end
+	
 
 	-- Read Sensor Parameter Rotor RPM
-	sensor = system.getSensorValueByID(vars.sensorId, vars.rotor_rpm_param)
+	sensor = system.getSensorValueByID(vars.rotor_rpm_sens[1], vars.rotor_rpm_sens[2])
 	if(sensor and sensor.valid) then
 		rotor_rpm = sensor.value
 		-- calculate Min/Max
@@ -385,7 +387,7 @@ local function loop()
 	end
 
 	-- Read Sensor Parameter Used Capacity
-	sensor = system.getSensorValueByID(vars.sensorId, vars.used_capacity_param)
+	sensor = system.getSensorValueByID(vars.used_capacity_sens[1], vars.used_capacity_sens[2])
 	if(sensor and sensor.valid and (battery_voltage > 1.0)) then
 		used_capacity = sensor.value
 
@@ -422,7 +424,7 @@ local function loop()
 	end	
 
 	-- Read Sensor Parameter BEC Current
-	sensor = system.getSensorValueByID(vars.sensorId, vars.bec_current_param)
+	sensor = system.getSensorValueByID(vars.bec_current_sens[1], vars.bec_current_sens[2])
 	if(sensor and sensor.valid) then
 		bec_current = sensor.value 
 		if bec_current < minrxa then minrxa = bec_current end
@@ -432,7 +434,7 @@ local function loop()
 	end
 
 	-- Read Sensor Parameter Governor PWM
-	sensor = system.getSensorValueByID(vars.sensorId, vars.pwm_percent_param)
+	sensor = system.getSensorValueByID(vars.pwm_percent_sens[1], vars.pwm_percent_sens[2])
 	if(sensor and sensor.valid) then
 		pwm_percent = sensor.value
 		if pwm_percent < minpwm then minpwm = pwm_percent end
@@ -442,7 +444,7 @@ local function loop()
 	end
 
 	-- Read Sensor Parameter FET Temperature
-	sensor = system.getSensorValueByID(vars.sensorId, vars.fet_temp_param)
+	sensor = system.getSensorValueByID(vars.fet_temp_sens[1], vars.fet_temp_sens[2])
 	if(sensor and sensor.valid) then
 		fet_temp = sensor.value 
 		if fet_temp < mintmp then mintmp = fet_temp end

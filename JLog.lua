@@ -27,6 +27,7 @@
 	V1.1 changed scope of some vars, minor change in flight timer
 	v2.0 moved most part of loop to screen module
 	v2.1 more acurate flight timer
+	v3.0 select sensors from different devices
 
 --]]
 
@@ -172,14 +173,16 @@ local function init(code1)
 	model = system.getProperty("Model")
 	owner = system.getUserName()
 
-	setupvars.sensorId = system.pLoad("sensorId", 0)
-	setupvars.battery_voltage_param = system.pLoad("battery_voltage_param", 0)
-	setupvars.motor_current_param = system.pLoad("motor_current_param", 0)
-	setupvars.rotor_rpm_param = system.pLoad("rotor_rpm_param", 0)
-	setupvars.used_capacity_param = system.pLoad("used_capacity_param", 0)
-	setupvars.bec_current_param = system.pLoad("bec_current_param", 0)
-	setupvars.pwm_percent_param = system.pLoad("pwm_percent_param", 0)
-	setupvars.fet_temp_param = system.pLoad("fet_temp_param", 0)
+	
+	setupvars.deviceId = system.pLoad("deviceId", 0)	-- remember last selectet device
+	
+	setupvars.battery_voltage_sens = system.pLoad( "battery_voltage_sens", { 0, 0 } )
+	setupvars.motor_current_sens = system.pLoad( "motor_current_sens", { 0, 0 } )
+	setupvars.rotor_rpm_sens = system.pLoad("rotor_rpm_sens", { 0, 0 } )
+	setupvars.used_capacity_sens = system.pLoad("used_capacity_sens", { 0, 0 } )
+	setupvars.bec_current_sens = system.pLoad("bec_current_sens", { 0, 0 } )
+	setupvars.pwm_percent_sens = system.pLoad("pwm_percent_sens", { 0, 0 } )
+	setupvars.fet_temp_sens = system.pLoad("fet_temp_sens", { 0, 0 } )
 
 	setupvars.anCapaSw = system.pLoad("anCapaSw")
 	setupvars.anVoltSw = system.pLoad("anVoltSw")
@@ -193,7 +196,7 @@ local function init(code1)
 	setupvars.resSw = system.pLoad("resSw")
 	setupvars.gyChannel = system.pLoad("gyChannel", 1) -- going to form only
 	setupvars.gyro_output = system.pLoad("gyro_output", 0) -- coming from form only
-
+	
 	setupvars.trans = trans
 
 	system.registerForm(1, MENU_APPS, trans.appName, setupForm, nil, nil, closeForm)
@@ -214,7 +217,7 @@ local function init(code1)
 	collectgarbage()
 end
 --------------------------------------------------------------------------------
-Version = "2.1"
+Version = "3.0"
 setLanguage()
 collectgarbage()
 return {init=init, loop=loop, author="Nichtgedacht", version=Version, name=trans.appName}
