@@ -64,7 +64,7 @@ local function init (stpvars)
 	
 	vars = stpvars
 	today = system.getDateTime()
---	voltage_alarm_dec_thresh = vars.voltage_alarm_thresh / 10
+	voltage_alarm_dec_thresh = vars.voltage_alarm_thresh / 10
 	ancorTime = system.getTimeCounter()
 	
 end	
@@ -385,7 +385,7 @@ local function loop()
 	else
 		rotor_rpm = 0
 	end
-
+	
 	-- Read Sensor Parameter Used Capacity
 	sensor = system.getSensorValueByID(vars.used_capacity_sens[1], vars.used_capacity_sens[2])
 	if(sensor and sensor.valid and (battery_voltage > 1.0)) then
