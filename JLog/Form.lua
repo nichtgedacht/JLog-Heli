@@ -1,32 +1,44 @@
-local sensor_label_list = {}
+local device_label_list = {}
 local device_id_list = {}
-local sensor_param_lists = {}
-local sensorIndex = 0
+local sensor_lists = {}
+local deviceIndex = 0
+local show
 
 output_list = { "O1", "O2", "O3", "O4", "O5", "O6", "O7", "O8", "O9", "O10", "O11", "O12",
 							"O13", "O14", "O15", "O16" }
 
-
 local function make_lists (deviceId)
+	local sensor, i
 	if ( not device_id_list[1] ) then	-- sensors not yet checked or rebooted
-		sensorIndex = 0
+		deviceIndex = 0
 		for i,sensor in ipairs(system.getSensors()) do
 			if (sensor.param == 0) then	-- new multisensor/device
-				sensor_label_list[#sensor_label_list + 1] = sensor.label	-- list presented in sensor select box
+				device_label_list[#device_label_list + 1] = sensor.label	-- list presented in sensor select box
 				device_id_list[#device_id_list + 1] = sensor.id				-- to get id from if sensor changed, same numeric indexing
 				if (sensor.id == deviceId) then
-					sensorIndex = #device_id_list
+					deviceIndex = #device_id_list
 				end
-				sensor_param_lists[#sensor_param_lists + 1] = {}			-- start new param list only containing label and unit as string
+				sensor_lists[#sensor_lists + 1] = {}						-- start new param list only containing label and unit as string
 			else															-- subscript is number of param for current multisensor/device
-				sensor_param_lists[#sensor_param_lists][sensor.param] = sensor.label .. "  " .. sensor.unit	-- list presented in param select box
-				sensor_param_lists[#sensor_param_lists][sensor.param + 1] = "..."
+				sensor_lists[#sensor_lists][sensor.param] = sensor.label .. "  " .. sensor.unit	-- list presented in param select box
+				sensor_lists[#sensor_lists][sensor.param + 1] = "..."
 			end
 		end
-		sensor_label_list[#sensor_label_list + 1] = "..."
+		device_label_list[#device_label_list + 1] = "..."
 	end
 end
 
+local function check_other_device(sens, deviceId)
+	local i
+	show = true
+	if ( sens[1] ~= deviceId and sens[2] ~= 0 ) then	-- sensor selectet from another device 
+		for i in next, device_id_list do
+			if ( sens[1] == device_id_list[i] ) then	-- this other device is still present
+				show = false
+			end	
+		end	
+	end
+end	
 
 local function setup(vars)
 
@@ -42,40 +54,30 @@ local function setup(vars)
 	form.addRow(2)
 	form.addLabel({label = vars.trans.labelp0, width=200})
 
-	form.addSelectbox( sensor_label_list, sensorIndex, true,
+	form.addSelectbox( device_label_list, deviceIndex, true,
 						function (value)
 							if ( not device_id_list[1] ) then	-- no device found
 								return
 							end
-							if (sensor_label_list[value] == "...") then
+							if (device_label_list[value] == "...") then
 								vars.deviceId = 0
-								sensorIndex = 0
+								deviceIndex = 0
 							else
 								vars.deviceId  = device_id_list[value]
-								sensorIndex = value
+								deviceIndex = value
 							end
 							system.pSave("deviceId", vars.deviceId)
 							form.reinit()
 						end )
 		
-	if ( device_id_list and sensorIndex > 0 ) then
-		
-		local i
-		local show = true
-		
-		if ( vars.battery_voltage_sens[1] ~= vars.deviceId and vars.battery_voltage_sens[2] ~= 0 ) then	-- sensor selectet from another device 
-			for i in next, device_id_list do
-				if ( vars.battery_voltage_sens[1] == device_id_list[i] ) then	-- this other device is still present
-					show = false
-				end	
-			end	
-		end
-			
+	if ( device_id_list and deviceIndex > 0 ) then
+
 		form.addRow(2) 	
 		form.addLabel({label = vars.trans.labelp1})
-		form.addSelectbox(sensor_param_lists[sensorIndex], vars.battery_voltage_sens[2], true,
+		check_other_device(vars.battery_voltage_sens, vars.deviceId)
+		form.addSelectbox(sensor_lists[deviceIndex], vars.battery_voltage_sens[2], true,
 							function (value)
-								if sensor_param_lists[sensorIndex][value] == "..." then
+								if sensor_lists[deviceIndex][value] == "..." then
 									value = 0
 								end
 								vars.battery_voltage_sens[1] = vars.deviceId
@@ -84,21 +86,12 @@ local function setup(vars)
 							end,
 							{enabled=show, visible=show} )
 
-		show = true
-		
-		if ( vars.motor_current_sens[1] ~= vars.deviceId and vars.motor_current_sens[2] ~= 0 ) then	-- sensor selectet from another device
-			for i in next, device_id_list do
-				if ( vars.motor_current_sens[1] == device_id_list[i] ) then	-- this other device is still present
-					show = false
-				end
-			end	
-		end
-			
 		form.addRow(2) 	
 		form.addLabel({label = vars.trans.labelp2})
-		form.addSelectbox(sensor_param_lists[sensorIndex], vars.motor_current_sens[2], true,
+		check_other_device(vars.motor_current_sens, vars.deviceId)
+		form.addSelectbox(sensor_lists[deviceIndex], vars.motor_current_sens[2], true,
 							function (value)
-								if sensor_param_lists[sensorIndex][value] == "..." then
+								if sensor_lists[deviceIndex][value] == "..." then
 									value = 0
 								end
 								vars.motor_current_sens[1] = vars.deviceId
@@ -107,21 +100,12 @@ local function setup(vars)
 							end,
 							{enabled=show, visible=show} )
 
-		show = true
-			
-		if ( vars.rotor_rpm_sens[1] ~= vars.deviceId and vars.rotor_rpm_sens[2] ~= 0 ) then	-- sensor selectet from another device
-			for i in next, device_id_list do
-				if ( vars.rotor_rpm_sens[1] == device_id_list[i] ) then	-- this other device is still present
-					show = false
-				end
-			end	
-		end
-
 		form.addRow(2) 	
 		form.addLabel({label = vars.trans.labelp3})
-		form.addSelectbox(sensor_param_lists[sensorIndex], vars.rotor_rpm_sens[2], true,
+		check_other_device(vars.rotor_rpm_sens, vars.deviceId)
+		form.addSelectbox(sensor_lists[deviceIndex], vars.rotor_rpm_sens[2], true,
 							function (value)
-								if sensor_param_lists[sensorIndex][value] == "..." then
+								if sensor_lists[deviceIndex][value] == "..." then
 									value = 0
 								end
 								vars.rotor_rpm_sens[1] = vars.deviceId
@@ -129,22 +113,13 @@ local function setup(vars)
 								system.pSave("rotor_rpm_sens", vars.rotor_rpm_sens)
 							end,
 							{enabled=show, visible=show} )
-			
-		show = true
-		
-		if ( vars.used_capacity_sens[1] ~= vars.deviceId and vars.used_capacity_sens[2] ~= 0 ) then	-- sensor selectet from another device
-			for i in next, device_id_list do
-				if ( vars.used_capacity_sens[1] == device_id_list[i] ) then	-- this other device is still present
-					show = false
-				end
-			end	
-		end
-		
+
 		form.addRow(2) 	
 		form.addLabel({label = vars.trans.labelp4})
-		form.addSelectbox(sensor_param_lists[sensorIndex], vars.used_capacity_sens[2], true,
+		check_other_device(vars.used_capacity_sens, vars.deviceId)
+		form.addSelectbox(sensor_lists[deviceIndex], vars.used_capacity_sens[2], true,
 							function (value)
-								if sensor_param_lists[sensorIndex][value] == "..." then
+								if sensor_lists[deviceIndex][value] == "..." then
 									value = 0
 								end
 								vars.used_capacity_sens[1] = vars.deviceId
@@ -152,22 +127,13 @@ local function setup(vars)
 								system.pSave("used_capacity_sens", vars.used_capacity_sens)
 							end,
 							{enabled=show, visible=show} )
-			
-		show = true
-		
-		if ( vars.bec_current_sens[1] ~= vars.deviceId and vars.bec_current_sens[2] ~= 0 ) then	-- sensor selectet from another device
-			for i in next, device_id_list do
-				if ( vars.bec_current_sens[1] == device_id_list[i] ) then	-- this other device is still present
-					show = false
-				end
-			end	
-		end		
-		
+
 		form.addRow(2) 	
 		form.addLabel({label = vars.trans.labelp5})
-		form.addSelectbox(sensor_param_lists[sensorIndex], vars.bec_current_sens[2], true,
+		check_other_device(vars.bec_current_sens, vars.deviceId)
+		form.addSelectbox(sensor_lists[deviceIndex], vars.bec_current_sens[2], true,
 							function (value)
-								if sensor_param_lists[sensorIndex][value] == "..." then
+								if sensor_lists[deviceIndex][value] == "..." then
 									value = 0
 								end
 								vars.bec_current_sens[1] = vars.deviceId
@@ -175,22 +141,13 @@ local function setup(vars)
 								system.pSave("bec_current_sens", vars.bec_current_sens)
 							end,
 							{enabled=show, visible=show} )
-			
-		show = true
 
-		if ( vars.pwm_percent_sens[1] ~= vars.deviceId and vars.pwm_percent_sens[2] ~= 0 ) then	-- sensor selectet from another device
-			for i in next, device_id_list do
-				if ( vars.pwm_percent_sens[1] == device_id_list[i] ) then	-- this other device is still present
-					show = false
-				end
-			end	
-		end				
-		
 		form.addRow(2) 	
 		form.addLabel({label = vars.trans.labelp6})
-		form.addSelectbox(sensor_param_lists[sensorIndex], vars.pwm_percent_sens[2], true,
+		check_other_device(vars.pwm_percent_sens, vars.deviceId)
+		form.addSelectbox(sensor_lists[deviceIndex], vars.pwm_percent_sens[2], true,
 							function (value)
-								if sensor_param_lists[sensorIndex][value] == "..." then
+								if sensor_lists[deviceIndex][value] == "..." then
 									value = 0
 								end
 								vars.pwm_percent_sens[1] = vars.deviceId
@@ -198,22 +155,13 @@ local function setup(vars)
 								system.pSave("pwm_percent_sens", vars.pwm_percent_sens)
 							end,
 							{enabled=show, visible=show} )
-			
-		show = true
 
-		if ( vars.fet_temp_sens[1] ~= vars.deviceId and vars.fet_temp_sens[2] ~= 0 ) then	-- sensor selectet from another device
-			for i in next, device_id_list do
-				if ( vars.fet_temp_sens[1] == device_id_list[i] ) then	-- this other device is still present
-					show = false
-				end
-			end	
-		end				
-				
 		form.addRow(2) 	
 		form.addLabel({label = vars.trans.labelp7})
-		form.addSelectbox(sensor_param_lists[sensorIndex], vars.fet_temp_sens[2], true,
+		check_other_device(vars.fet_temp_sens, vars.deviceId)
+		form.addSelectbox(sensor_lists[deviceIndex], vars.fet_temp_sens[2], true,
 							function (value)
-								if sensor_param_lists[sensorIndex][value] == "..." then
+								if sensor_lists[deviceIndex][value] == "..." then
 									value = 0
 								end
 								vars.fet_temp_sens[1] = vars.deviceId
@@ -221,8 +169,8 @@ local function setup(vars)
 								system.pSave("fet_temp_sens", vars.fet_temp_sens)
 							end,
 							{enabled=show, visible=show} )
-			
 	end
+	
 	form.addRow(1)
 	form.addLabel({label=vars.trans.label1,font=FONT_BOLD})
 

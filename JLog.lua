@@ -28,6 +28,7 @@
 	v2.0 moved most part of loop to screen module
 	v2.1 more acurate flight timer
 	v3.0 select sensors from different devices
+	v3.1 cleanup
 
 --]]
 
@@ -217,7 +218,7 @@ local function init(code1)
 	collectgarbage()
 end
 --------------------------------------------------------------------------------
-Version = "3.0"
+Version = "3.1"
 setLanguage()
 collectgarbage()
 return {init=init, loop=loop, author="Nichtgedacht", version=Version, name=trans.appName}
