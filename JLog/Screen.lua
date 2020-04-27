@@ -71,18 +71,21 @@ end
 
 -- Draw Battery and percentage display
 local function drawBattery()
-	
+
 	-- Battery
 	lcd.drawFilledRectangle(148, 48, 24, 7)	-- Top of Battery
 	lcd.drawRectangle(134, 55, 52, 80)
 	-- Level of Battery
 	local chgY = (135 - (remaining_capacity_percent * 0.8))
 	local chgH = (remaining_capacity_percent * 0.8)
-	
+	-- Level of treshhold
+	local chgTY = (135 - (vars.capacity_alarm_thresh * 0.8))
+
 	lcd.drawFilledRectangle(135, chgY, 50, chgH)
-			
+	lcd.drawFilledRectangle(135, chgTY, 51, 1, FONT_XOR)
+
 	-- Percentage Display
-	if( remaining_capacity_percent > vars.capacity_alarm_thresh ) then	
+	if( remaining_capacity_percent > vars.capacity_alarm_thresh ) then
 		lcd.drawRectangle(115, 2, 90, 43, 10)
 		lcd.drawRectangle(114, 1, 92, 45, 11)
 		lcd.drawText(160 - (lcd.getTextWidth(FONT_MAXI, string.format("%.0f%%",remaining_capacity_percent)) / 2),4, string.format("%.0f%%",
@@ -95,7 +98,7 @@ local function drawBattery()
 								remaining_capacity_percent),FONT_MAXI)
 		end
 	end
-		
+
 	collectgarbage()
 end
 
@@ -336,7 +339,7 @@ local function loop()
 	rx_a1 = txtelemetry.RSSI[1]
 	rx_a2 = txtelemetry.RSSI[2]
 
-	-- Read Sensor Parameter Voltage 
+	-- Read Sensor Voltage 
 	sensor = system.getSensorValueByID(vars.battery_voltage_sens[1], vars.battery_voltage_sens[2])
 	
 	if(sensor and sensor.valid ) then
@@ -363,7 +366,7 @@ local function loop()
 		initial_voltage_measured = false
 	end
      
-	-- Read Sensor Parameter Current 
+	-- Read Sensor Current 
 	sensor = system.getSensorValueByID(vars.motor_current_sens[1], vars.motor_current_sens[2])
 	if(sensor and sensor.valid) then
 		motor_current = sensor.value
@@ -375,7 +378,7 @@ local function loop()
 	end
 	
 
-	-- Read Sensor Parameter Rotor RPM
+	-- Read Sensor Rotor RPM
 	sensor = system.getSensorValueByID(vars.rotor_rpm_sens[1], vars.rotor_rpm_sens[2])
 	if(sensor and sensor.valid) then
 		rotor_rpm = sensor.value
@@ -386,7 +389,7 @@ local function loop()
 		rotor_rpm = 0
 	end
 	
-	-- Read Sensor Parameter Used Capacity
+	-- Read Sensor Used Capacity
 	sensor = system.getSensorValueByID(vars.used_capacity_sens[1], vars.used_capacity_sens[2])
 	if(sensor and sensor.valid and (battery_voltage > 1.0)) then
 		used_capacity = sensor.value
@@ -423,7 +426,7 @@ local function loop()
 		if( remaining_capacity_percent < 0 ) then remaining_capacity_percent = 0 end
 	end	
 
-	-- Read Sensor Parameter BEC Current
+	-- Read Sensor BEC Current
 	sensor = system.getSensorValueByID(vars.bec_current_sens[1], vars.bec_current_sens[2])
 	if(sensor and sensor.valid) then
 		bec_current = sensor.value 
@@ -433,7 +436,7 @@ local function loop()
 		bec_current = 0
 	end
 
-	-- Read Sensor Parameter Governor PWM
+	-- Read Sensor Governor PWM
 	sensor = system.getSensorValueByID(vars.pwm_percent_sens[1], vars.pwm_percent_sens[2])
 	if(sensor and sensor.valid) then
 		pwm_percent = sensor.value
@@ -443,7 +446,7 @@ local function loop()
 		pwm_percent = 0
 	end
 
-	-- Read Sensor Parameter FET Temperature
+	-- Read Sensor FET Temperature
 	sensor = system.getSensorValueByID(vars.fet_temp_sens[1], vars.fet_temp_sens[2])
 	if(sensor and sensor.valid) then
 		fet_temp = sensor.value 

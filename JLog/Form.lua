@@ -1,5 +1,5 @@
 local device_label_list = {}
-local device_id_list = {}
+local deviceId_list = {}
 local sensor_lists = {}
 local deviceIndex = 0
 local show
@@ -9,14 +9,14 @@ output_list = { "O1", "O2", "O3", "O4", "O5", "O6", "O7", "O8", "O9", "O10", "O1
 
 local function make_lists (deviceId)
 	local sensor, i
-	if ( not device_id_list[1] ) then	-- sensors not yet checked or rebooted
+	if ( not deviceId_list[1] ) then	-- sensors not yet checked or rebooted
 		deviceIndex = 0
 		for i,sensor in ipairs(system.getSensors()) do
 			if (sensor.param == 0) then	-- new multisensor/device
 				device_label_list[#device_label_list + 1] = sensor.label	-- list presented in sensor select box
-				device_id_list[#device_id_list + 1] = sensor.id				-- to get id from if sensor changed, same numeric indexing
+				deviceId_list[#deviceId_list + 1] = sensor.id				-- to get id from if sensor changed, same numeric indexing
 				if (sensor.id == deviceId) then
-					deviceIndex = #device_id_list
+					deviceIndex = #deviceId_list
 				end
 				sensor_lists[#sensor_lists + 1] = {}						-- start new param list only containing label and unit as string
 			else															-- subscript is number of param for current multisensor/device
@@ -32,8 +32,8 @@ local function check_other_device(sens, deviceId)
 	local i
 	show = true
 	if ( sens[1] ~= deviceId and sens[2] ~= 0 ) then	-- sensor selectet from another device 
-		for i in next, device_id_list do
-			if ( sens[1] == device_id_list[i] ) then	-- this other device is still present
+		for i in next, deviceId_list do
+			if ( sens[1] == deviceId_list[i] ) then	-- this other device is still present
 				show = false
 			end	
 		end	
@@ -56,21 +56,21 @@ local function setup(vars)
 
 	form.addSelectbox( device_label_list, deviceIndex, true,
 						function (value)
-							if ( not device_id_list[1] ) then	-- no device found
+							if ( not deviceId_list[1] ) then	-- no device found
 								return
 							end
 							if (device_label_list[value] == "...") then
 								vars.deviceId = 0
 								deviceIndex = 0
 							else
-								vars.deviceId  = device_id_list[value]
+								vars.deviceId  = deviceId_list[value]
 								deviceIndex = value
 							end
 							system.pSave("deviceId", vars.deviceId)
 							form.reinit()
 						end )
 		
-	if ( device_id_list and deviceIndex > 0 ) then
+	if ( deviceId_list and deviceIndex > 0 ) then
 
 		form.addRow(2) 	
 		form.addLabel({label = vars.trans.labelp1})
@@ -245,7 +245,6 @@ local function setup(vars)
 	form.addIntbox(vars.voltage_alarm_thresh,0,1000,0,1,1,
 						function (value)
 							vars.voltage_alarm_thresh=value
-						--	vars.voltage_alarm_dec_thresh = vars.voltage_alarm_thresh / 10
 							system.pSave("voltage_alarm_thresh", vars.voltage_alarm_thresh)
 						end, {label=" V"} )
 

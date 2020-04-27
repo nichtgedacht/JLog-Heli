@@ -73,6 +73,7 @@ local trans
 local mem, maxmem = 0, 0 -- for debug only
 local goregisterTelemetry = nil
 local setupvars = {}
+local Form, Screen
 
 -- Read translations
 local function setLanguage()
@@ -218,7 +219,7 @@ local function init(code1)
 	collectgarbage()
 end
 --------------------------------------------------------------------------------
-Version = "3.1"
+Version = "3.2"
 setLanguage()
 collectgarbage()
 return {init=init, loop=loop, author="Nichtgedacht", version=Version, name=trans.appName}
